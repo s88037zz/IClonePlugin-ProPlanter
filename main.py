@@ -2,11 +2,11 @@ import RLPy
 import ui_components as uic
 from PySide2 import QtWidgets
 from PySide2.shiboken2 import wrapInstance
-from prop_planter_control import PropPlanterUiControl
+from prop_planter_control import PropPlanterUiControl, PropPlanterTabWidget
 
 ui = {}
 all_events, event_callback = [], None
-global ui_control
+ui_control = None
 
 
 class SelectionEventCallback(RLPy.REventCallback):
@@ -31,21 +31,40 @@ class DialogEventCallback(RLPy.RDialogCallback):
         all_events.clear()
 
 
-def show_dialog():
+def init_dialog():
     global ui, ui_control
-    ui["main_dlg"] = RLPy.RUi.CreateRDialog()
-    ui["main_dlg"].SetWindowTitle("Prop Planter")
+    ui['dialog_window'], ui['main_layout'] = set_dock("Prop Planter")
 
     # # Register Event CallBack
     # dialog_event_callback = DialogEventCallback()
     # ui["main_dlg"].RegisterEventCallback(dialog_event_callback)
 
-    dialog = wrapInstance(int(ui['main_dlg'].GetWindow()), QtWidgets.QDialog)
+    try:
+        ui['main_layout'].addWidget(PropPlanterTabWidget())
+    except Exception as e:
+        print(e)
 
-    ui_control = PropPlanterUiControl(dialog)
 
-    ui["main_dlg"].Show()
+def set_dock(title="Prop Planter", width=300, height=400, layout=QtWidgets.QVBoxLayout):
+    dock = RLPy.RUi.CreateRDockWidget()
+    dock.SetWindowTitle(title)
 
+    qt_dock = wrapInstance(int(dock.GetWindow()), QtWidgets.QDockWidget)
+    main_widget = QtWidgets.QWidget()
+    qt_dock.setWidget(main_widget)
+    qt_dock.setFixedWidth(width)
+    qt_dock.setMinimumHeight(height)
+
+    main_layout = layout()
+    main_widget.setLayout(main_layout)
+
+    return dock, main_layout
+
+
+
+def show_dialog():
+    global ui
+    ui["dialog_window"].Show()
 
 
 def initialize_plugin():
@@ -58,8 +77,10 @@ def initialize_plugin():
             "Python Samples", RLPy.EMenu_Plugins)), QtWidgets.QMenu)
         plugin_menu.setObjectName('pysample_menu')
 
-    # init dialog
+
+    # dialog
     menu_action = plugin_menu.addAction("PropPlanter")
+    init_dialog()
     menu_action.triggered.connect(show_dialog)
 
     # register event
