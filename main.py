@@ -58,7 +58,6 @@ def init_dialog():
         ui['main_layout'].addWidget(ui['tab_widget'])
         ui["apply"] = UI.Button("apply", parent=ui['main_layout'])
 
-
     except Exception as e:
         print(e)
 

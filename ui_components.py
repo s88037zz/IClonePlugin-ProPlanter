@@ -2,6 +2,8 @@ import RLPy
 from PySide2 import QtWidgets
 from functools import partial
 from PySide2 import QtCore
+from PySide2.QtCore import *
+
 
 
 class SelectionControl(QtWidgets.QWidget):
@@ -12,7 +14,7 @@ class SelectionControl(QtWidgets.QWidget):
         self.list_view = QtWidgets.QListView()
 
         # self.setStyleSheet("QListView {border:1px solid rgb(72, 72, 72);}")
-        # self.list_view.setFixedHeight(height)
+        self.list_view.setFixedHeight(height)
 
         self.setLayout(QtWidgets.QVBoxLayout())
         self.layout().setSpacing(0)
@@ -26,7 +28,6 @@ class SelectionControl(QtWidgets.QWidget):
 
     def set_item_label(self, item_idx, text):
         self.layout().itemAt(item_idx).widget().setText(text)
-
 
 
 
@@ -78,25 +79,59 @@ class Vector3Control(QtWidgets.QWidget):
             parent.addWidget(self)
 
 
-class SliderControl(QtWidgets.QWidget):
-    def __init__(self, label="Bar", span=(0, 10, 0), parent=None):
+class SliderControl(QtWidgets.QGroupBox):
+    valueChange = Signal(float)
+
+    def __init__(self, label=None, span=(0, 10), parent=None):
         super().__init__()
-        layout = QtWidgets.QVBoxLayout()
-        bot_layout = QtWidgets.QHBoxLayout()
 
-        bar = QtWidgets.QSlider(QtCore.Qt.Horizontal,
-                                maximum=span[0], minimum=span[1], value=5)
+        layout = QtWidgets.QHBoxLayout()
 
-        spinbox = QtWidgets.QSpinBox(maximum=span[0], minimum=span[1], value=5)
-        bot_layout.addWidget(bar)
-        bot_layout.addWidget(spinbox)
+        self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal,
+                                         maximum=span[1], minimum=span[0], value=5, singleStep=1)
+        self._slider.valueChanged.connect(lambda x: self.__change_value(x, 'spinbox'))
 
-        layout.addWidget(QtWidgets.QLabel(label))
-        layout.addLayout(bot_layout)
+        self._spinbox = QtWidgets.QSpinBox(maximum=span[1], minimum=span[0], value=5, singleStep=1)
+        self._spinbox.valueChanged.connect(lambda x: self.__change_value(x, 'slider'))
+
+        layout.addWidget(self._slider)
+        layout.addWidget(self._spinbox)
+
+        self.setTitle("{0}:" .format(label))
         self.setLayout(layout)
+        self.setStyleSheet("QGroupBox  {color: #a2ec13}")
 
+
+        self.__value = span[0]
+        self.__span = span
         if parent:
             parent.addWidget(self)
+
+    def __block_signals(self, cond=True):
+        self._spinbox.blockSignals(cond)
+        self._slider.blockSignals(cond)
+
+    def __change_value(self, value, item: str):
+        self.__block_signals()
+        if item == 'spinbox':
+            self._spinbox.setValue(value)
+        elif item == 'slider':
+            self._slider.setValue(value)
+        self.__block_signals(False)
+        self.valueChanged.emit(self.__value)
+
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, val):
+        self.__value = clamp(val, self.__span[0], self.__span[1])
+        self.__blockSignals()
+        self._double_spinBox.setValue(self.__value)
+        self._slider.setValue(self.__value)
+        self.__blockSignals(False)
 
 
 class Button(QtWidgets.QPushButton):
@@ -109,5 +144,18 @@ class Button(QtWidgets.QPushButton):
         if parent:
             parent.addWidget(self)
 
-    def clone_prop(self):
+    def clone_prop(self, prop, place):
         pass
+
+
+def clamp(amount, value1, value2):
+    __min = value1
+    __max = value2
+    if (value1 > value2):
+        __max = value1
+        __min = value2
+    if (amount < __min):
+        return __min
+    if (amount > __max):
+        return __max
+    return amount
