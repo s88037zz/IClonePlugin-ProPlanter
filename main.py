@@ -1,8 +1,8 @@
 import RLPy
-import ui_components as uic
+import ui_components as UI
 from PySide2 import QtWidgets
 from PySide2.shiboken2 import wrapInstance
-from prop_planter_control import PropPlanterUiControl, PropPlanterTabWidget
+from prop_planter_control import PropConfigControl, PropPlanterTabWidget
 
 # Global value
 ui = {}
@@ -56,6 +56,8 @@ def init_dialog():
     try:
         ui['tab_widget'] = PropPlanterTabWidget()
         ui['main_layout'].addWidget(ui['tab_widget'])
+        ui["apply"] = UI.Button("apply", parent=ui['main_layout'])
+
 
     except Exception as e:
         print(e)

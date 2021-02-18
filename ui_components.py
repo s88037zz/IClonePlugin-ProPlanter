@@ -24,8 +24,10 @@ class SelectionControl(QtWidgets.QWidget):
         if parent:
             parent.addWidget(self)
 
-    def set_label(self, content):
-        self.layout().itemAt(0).widget().setText(content)
+    def set_item_label(self, item_idx, text):
+        self.layout().itemAt(item_idx).widget().setText(text)
+
+
 
 
 class Vector3Control(QtWidgets.QWidget):
@@ -107,4 +109,5 @@ class Button(QtWidgets.QPushButton):
         if parent:
             parent.addWidget(self)
 
-
+    def clone_prop(self):
+        pass
