@@ -14,6 +14,9 @@ class PropPlanterTabWidget(QtWidgets.QTabWidget):
         self.addTab(self.prop_widget, "Property")
         self.addTab(self.place_widget, "Place")
 
+    def handle_selected_change_event(self):
+        self.prop_widget.handle_selected_change_event()
+
 
 class PlaceControl(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -84,7 +87,6 @@ class PropPlanterUiControl(QtWidgets.QWidget):
 
     def handle_selected_change_event(self):
         self.refresh()
-
         for idx, obj in enumerate(self.selected_objects):
             print("GetName: %s" % (obj.GetName()))
             name = obj.GetName()

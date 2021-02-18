@@ -96,6 +96,7 @@ class SliderControl(QtWidgets.QWidget):
         if parent:
             parent.addWidget(self)
 
+
 class Button(QtWidgets.QPushButton):
     def __init__(self, label="Button", enabled=True, parent=None):
         super(Button, self).__init__(label)

@@ -4,19 +4,24 @@ from PySide2 import QtWidgets
 from PySide2.shiboken2 import wrapInstance
 from prop_planter_control import PropPlanterUiControl, PropPlanterTabWidget
 
+# Global value
 ui = {}
-all_events, event_callback = [], None
-ui_control = None
+
+# Callback
+event_list = []
+dialog_event_callback = None
+event_callback = None
 
 
-class SelectionEventCallback(RLPy.REventCallback):
+# ----------------- Event Call Back -----
+class PropPlanterEventCallBack(RLPy.REventCallback):
     def __init__(self):
         RLPy.REventCallback.__init__(self)
 
     def OnObjectSelectionChanged(self):
         print('selected change')
-        global ui_control
-        ui_control.handle_selected_change_event()
+        global ui
+        ui['tab_widget'].handle_selected_change_event()
 
 
 class DialogEventCallback(RLPy.RDialogCallback):
@@ -24,23 +29,34 @@ class DialogEventCallback(RLPy.RDialogCallback):
         RLPy.RDialogCallback.__init__(self)
 
     def OnDialogHide(self):
-        global all_events
-
-        for event in all_events:
+        global event_list
+        for event in event_list:
             RLPy.REventHandler.UnregisterCallback(event)
-        all_events.clear()
+        event_list.clear()
 
 
+def regist_event():
+    global event_callback
+    event_callback = PropPlanterEventCallBack()
+    id = RLPy.REventHandler.RegisterCallback(event_callback)
+    event_list.append(id)
+
+    global ui
+    global dialog_event_callback
+    dialog_event_callback = DialogEventCallback()
+    ui['dialog_window'].RegisterEventCallback(dialog_event_callback)
+
+
+# ----- Set Plugin -------
 def init_dialog():
-    global ui, ui_control
+    global ui
+    global tab_widget
     ui['dialog_window'], ui['main_layout'] = set_dock("Prop Planter")
 
-    # # Register Event CallBack
-    # dialog_event_callback = DialogEventCallback()
-    # ui["main_dlg"].RegisterEventCallback(dialog_event_callback)
-
     try:
-        ui['main_layout'].addWidget(PropPlanterTabWidget())
+        ui['tab_widget'] = PropPlanterTabWidget()
+        ui['main_layout'].addWidget(ui['tab_widget'])
+
     except Exception as e:
         print(e)
 
@@ -61,14 +77,14 @@ def set_dock(title="Prop Planter", width=300, height=400, layout=QtWidgets.QVBox
     return dock, main_layout
 
 
-
 def show_dialog():
     global ui
     ui["dialog_window"].Show()
+    regist_event()
 
 
 def initialize_plugin():
-    global all_events, event_callback
+    global event_list, event_callback
 
     ic_dlg = wrapInstance(int(RLPy.RUi.GetMainWindow()), QtWidgets.QMainWindow)
     plugin_menu = ic_dlg.menuBar().findChild(QtWidgets.QMenu, "pysample_menu")
@@ -77,16 +93,10 @@ def initialize_plugin():
             "Python Samples", RLPy.EMenu_Plugins)), QtWidgets.QMenu)
         plugin_menu.setObjectName('pysample_menu')
 
-
     # dialog
     menu_action = plugin_menu.addAction("PropPlanter")
     init_dialog()
     menu_action.triggered.connect(show_dialog)
-
-    # register event
-    event_callback = SelectionEventCallback()
-    id = RLPy.REventHandler.RegisterCallback(event_callback)
-    all_events.append(id)
 
 
 def run_script():
