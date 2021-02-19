@@ -30,7 +30,6 @@ class SelectionControl(QtWidgets.QWidget):
         self.layout().itemAt(item_idx).widget().setText(text)
 
 
-
 class Vector3Control(QtWidgets.QWidget):
     def __init__(self, label='Vector', span=(-100, 0, 100), checked=[True, True, True], parent=None):
         super().__init__()
@@ -114,12 +113,13 @@ class SliderControl(QtWidgets.QGroupBox):
     def __change_value(self, value, item: str):
         self.__block_signals()
         if item == 'spinbox':
+            self.__value = value
             self._spinbox.setValue(value)
         elif item == 'slider':
+            self.__value = value
             self._slider.setValue(value)
         self.__block_signals(False)
         self.valueChanged.emit(self.__value)
-
 
     @property
     def value(self):
@@ -143,9 +143,6 @@ class Button(QtWidgets.QPushButton):
 
         if parent:
             parent.addWidget(self)
-
-    def clone_prop(self, prop, place):
-        pass
 
 
 def clamp(amount, value1, value2):

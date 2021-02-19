@@ -27,10 +27,15 @@ class PlaceConfigControl(QtWidgets.QWidget):
         ui = {}
         ui["selection"] = UI.SelectionControl(0, "Place", parent=self.layout)
         self.ui = ui.copy()
-        # self.refresh()
+        self.selected_objects = []
+        self.refresh()
 
         if parent:
             parent.addWidget(self)
+
+    @property
+    def selection(self):
+        return self.selected_objects[0]
 
     def handle_selected_change_event(self):
         self.refresh()
@@ -62,10 +67,19 @@ class PropConfigControl(QtWidgets.QWidget):
 
         # data
         self.ui = ui.copy()
-        # self.refresh()
+        self.selected_objects = []
+        self.refresh()
 
         if parent:
             parent.addWidget(self)
+
+    @property
+    def selection(self):
+        return self.selected_objects[0]
+
+    @property
+    def clone_quantity(self):
+        return self.ui['clone'].value
 
     def handle_selected_change_event(self):
         self.refresh()
