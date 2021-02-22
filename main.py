@@ -3,8 +3,8 @@ import ui_components as UI
 from PySide2 import QtWidgets
 from PySide2.shiboken2 import wrapInstance
 from random import randrange
-from prop_planter_control import PropConfigControl, PropPlanterTabWidget
-
+from prop_planter_control import PropPlanterTabWidget
+from manipulation import local_move
 # Global value
 ui = {}
 
@@ -121,57 +121,37 @@ def apply():
     print("Clone Quantity: %d" % clone_quantity)
     print("Place Name: %s" % place.GetName())
 
-    # skeleton = prop.GetSkeletonComponent()
-    # root_bone = skeleton.GetRootBone()
-    # prop_wold_transform = root_bone.WorldTransform()
-    # print("Prop World Transform:", prop_wold_transform)
+    x_min, x_max = 0, 1000
+    y_min, y_max = 0, 1,
+    z_min, z_max = 0, 1
 
-    # Create clone object
-    clone = prop.Clone()
-    transform_control = clone.GetControl("Transform")
-    transform_key = RLPy.RTransformKey()
-    transform_control.GetTransformKey(RLPy.RTime(0), transform_key)
-    transform = transform_key.GetTransform()
+    # get place bounding size
+    maxPoint = RLPy.RVector3()
+    cenPoint = RLPy.RVector3()
+    minPoint = RLPy.RVector3()
+    status = place.GetBounds(maxPoint, cenPoint, minPoint)
+    bounding = maxPoint - cenPoint
 
-    local_pos = RLPy.RVector3(300, 0, 0)
-    local_move(clone, local_pos)
+    # populate the four point of bounding box
+    # top_left_up =
 
+    for i in range(clone_quantity):
+        # Create clone object
+        clone = prop.Clone()
+        transform = clone.WorldTransform()
 
-    first_clone_move = {
-        "x": 0, "y": 0, 'z': 0
-    }
+        # set min and max
+        transform.T().x = randrange(x_min, x_max)
+        transform.T().y = randrange(y_min, y_max)
+        transform.T().z = randrange(z_min, z_max)
 
-    first_clone_scale = {
-        'x': 1, 'y': 1, "z": 0
-    }
-
-
-def local_to_world_translate(obj, local_pos):
-    transform = obj.WorldTransform()
-    transform_matrix = transform.Matrix()
-    transform_matrix.SetTranslate(RLPy.RVector3.ZERO)
-
-    local_matrix = RLPy.RMatrix4()
-    local_matrix.MakeIdentity()
-    local_matrix.SetTranslate(local_pos)
-
-    # Get world-space position by multiplying local-space with the transform-space
-    world_matrix = local_matrix * transform_matrix
-
-    return world_matrix.GetTranslate()
+        # set coordination of clone object
+        transform_control = clone.GetControl("Transform")
+        transform_data_block = transform_control.GetDataBlock()
+        transform_data_block.SetData("Position/PositionX", RLPy.RTime(0), RLPy.RVariant(transform.T().x))
+        transform_data_block.SetData("Position/PositionY", RLPy.RTime(0), RLPy.RVariant(transform.T().y))
+        transform_data_block.SetData("Position/PositionZ", RLPy.RTime(0), RLPy.RVariant(transform.T().z))
 
 
-def local_move(obj, local_pos):
-    world_position = local_to_world_translate(obj, local_pos)
-    current_time = RLPy.RGlobal.GetTime()
 
-    # Set positional keys
-    t_control = obj.GetControl("Transform")
-    t_data_block = t_control.GetDataBlock()
-    t_data_block.SetData("Position/PositionX", current_time, RLPy.RVariant(world_position.x))
-    t_data_block.SetData("Position/PositionY", current_time, RLPy.RVariant(world_position.y))
-    t_data_block.SetData("Position/PositionZ", current_time, RLPy.RVariant(world_position.z))
 
-    # Force update iClone native UI
-    RLPy.RGlobal.SetTime(RLPy.RGlobal.GetTime() + RLPy.RTime(1))
-    RLPy.RGlobal.SetTime(RLPy.RGlobal.GetTime() - RLPy.RTime(1))

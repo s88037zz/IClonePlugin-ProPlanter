@@ -79,7 +79,7 @@ class Vector3Control(QtWidgets.QWidget):
 
 
 class SliderControl(QtWidgets.QGroupBox):
-    valueChange = Signal(float)
+    value_change = Signal(float)
 
     def __init__(self, label=None, span=(0, 10), parent=None):
         super().__init__()
@@ -101,7 +101,7 @@ class SliderControl(QtWidgets.QGroupBox):
         self.setStyleSheet("QGroupBox  {color: #a2ec13}")
 
 
-        self.__value = span[0]
+        self.__value = 5
         self.__span = span
         if parent:
             parent.addWidget(self)
@@ -119,7 +119,7 @@ class SliderControl(QtWidgets.QGroupBox):
             self.__value = value
             self._slider.setValue(value)
         self.__block_signals(False)
-        self.valueChanged.emit(self.__value)
+        self.value_change.emit(self.__value)
 
     @property
     def value(self):
